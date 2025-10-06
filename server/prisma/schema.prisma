@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Worker {
+  id     Int    @id @default(autoincrement())
+  name   String 
+  status Int    @default(0)
+  shard  Int    @default(0)
+
+  Shift Shift[]
+}
+
+model Workplace {
+  id     Int    @id @default(autoincrement())
+  name   String 
+  status Int    @default(0)
+  shard  Int    @default(0)
+
+  shifts Shift[]
+
+  @@index([status])
+  @@index([status, name])
+}
+
+model Shift {
+  id                     Int       @id @default(autoincrement())
+  createdAt              DateTime  @default(now()) @map("created_at")
+  startAt                DateTime  @map("start_at")
+  endAt                  DateTime  @map("end_at")
+  workplaceId            Int       @map("workplace_id")
+  workerId               Int?      @map("worker_id")
+  shard                  Int       @default(0)
+  cancelledAt            DateTime? @map("cancelled_at")
+  pendingCancellationAt  DateTime? @map("pending_cancellation_at")
+  minCancellationHours   Int?      @map("min_cancellation_hours") 
+  contactPersonName      String?   @map("contact_person_name") 
+  contactPersonNumber    String?   @map("contact_person_number")
+  jobType                String?   @map("job_type") 
+  payRate                Float?    @map("pay_rate")
+
+  worker    Worker?   @relation(fields: [workerId], references: [id])
+  workplace Workplace @relation(fields: [workplaceId], references: [id])
+
+  @@index([workerId])
+  @@index([workplaceId, startAt])
+  @@index([workerId, startAt, endAt])
+  @@index([startAt])
+  @@index([jobType, startAt])
+  @@index([payRate])
+}
